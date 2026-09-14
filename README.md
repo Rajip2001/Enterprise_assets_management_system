@@ -396,7 +396,7 @@ dotnet tool install --global dotnet-ef
 ### 1. Clone the repository
 
 ```bash
-git clone <YOUR_GITHUB_REPOSITORY_URL>
+git clone https://github.com/Rajip2001/Enterprise_assets_management_system.git
 ```
 
 Move into the project directory:
