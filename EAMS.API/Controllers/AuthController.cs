@@ -1,5 +1,6 @@
 ﻿using EAMS.Application.Features.Authentication.Commands.Login;
 using EAMS.Application.Features.Authentication.Commands.Register;
+using EAMS.Application.Features.Authentication.Commands.RefreshToken;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 
@@ -18,15 +19,22 @@ public class AuthController : ControllerBase
 
 
     [HttpPost("register")]
-    public async Task<IActionResult> Register([FromBody] RegisterCommand command,CancellationToken cancellationToken)
+    public async Task<IActionResult> Register([FromBody] RegisterCommand command, CancellationToken cancellationToken)
     {
-        var result = await _sender.Send(command,cancellationToken);
+        var result = await _sender.Send(command, cancellationToken);
         return Ok(result);
     }
 
 
     [HttpPost("login")]
-    public async Task<IActionResult> Login([FromBody] LoginCommand command,CancellationToken cancellationToken)
+    public async Task<IActionResult> Login([FromBody] LoginCommand command, CancellationToken cancellationToken)
+    {
+        var result = await _sender.Send(command, cancellationToken);
+        return Ok(result);
+    }
+
+    [HttpPost("refresh")]
+    public async Task<IActionResult> Refresh([FromBody] RefreshTokenCommand command,CancellationToken cancellationToken)
     {
         var result = await _sender.Send(command,cancellationToken);
         return Ok(result);

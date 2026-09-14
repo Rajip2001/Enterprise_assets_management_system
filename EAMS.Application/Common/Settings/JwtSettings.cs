@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
-
 namespace EAMS.Application.Common.Settings;
 
 public class JwtSettings
@@ -13,4 +12,6 @@ public class JwtSettings
     public string Audience { get; set; } = string.Empty;
 
     public int AccessTokenExpirationMinutes { get; set; }
+
+    public int RefreshTokenExpirationDays { get; set; }
 }

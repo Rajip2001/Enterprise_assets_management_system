@@ -1,10 +1,9 @@
 ﻿using EAMS.Application.Common.Interfaces;
 using EAMS.Application.Features.Authentication.DTOs;
 using MediatR;
+using EAMS.Domain.Entities;
+using EAMS.Application.Features.Authentication.Commands.RefreshToken;
 using Microsoft.EntityFrameworkCore;
-using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace EAMS.Application.Features.Authentication.Commands.Login;
 
@@ -79,6 +78,33 @@ public class LoginCommandHandler
         var accessToken =
             _jwtService.GenerateAccessToken(user);
 
+        var refreshToken =
+            _jwtService.GenerateRefreshToken();
+
+        var refreshTokenExpiresAt =
+            DateTime.UtcNow.AddDays(
+            _jwtService.GetRefreshTokenExpirationDays());
+
+        var refreshTokenEntity = new EAMS.Domain.Entities.RefreshToken
+        {
+            Id = Guid.NewGuid(),
+
+            Token = refreshToken,
+
+            UserId = user.Id,
+
+            ExpiresAt = refreshTokenExpiresAt,
+
+            IsRevoked = false
+        };
+
+        await _context.RefreshTokens.AddAsync(
+            refreshTokenEntity,
+            cancellationToken);
+
+        await _context.SaveChangesAsync(
+            cancellationToken);
+
         // Calculate expiry
         var expiresAt =
             DateTime.UtcNow.AddMinutes(15);
@@ -88,16 +114,23 @@ public class LoginCommandHandler
             UserId = user.Id,
 
             FirstName = user.FirstName,
+
             LastName = user.LastName,
 
             Email = user.Email,
+
             UserName = user.UserName,
 
             Role = user.Role.Name,
 
             AccessToken = accessToken,
 
-            AccessTokenExpiresAt = expiresAt
+            AccessTokenExpiresAt = DateTime.UtcNow.AddMinutes(
+                _jwtService.GetAccessTokenExpirationMinutes()),
+
+            RefreshToken = refreshToken,
+
+            RefreshTokenExpiresAt = refreshTokenExpiresAt
         };
     }
 }

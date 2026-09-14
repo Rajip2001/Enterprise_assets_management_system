@@ -1,9 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-using System.IdentityModel.Tokens.Jwt;
+﻿using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
+using System.Security.Cryptography;
 using System.Text;
 using EAMS.Application.Common.Interfaces;
 using EAMS.Application.Common.Settings;
@@ -26,33 +23,34 @@ public class JwtService : IJwtService
     {
         var claims = new List<Claim>
         {
-            new Claim(
+            new(
                 ClaimTypes.NameIdentifier,
                 user.Id.ToString()),
 
-            new Claim(
+            new(
                 JwtRegisteredClaimNames.Sub,
                 user.Id.ToString()),
 
-            new Claim(
+            new(
                 JwtRegisteredClaimNames.Email,
                 user.Email),
 
-            new Claim(
+            new(
                 JwtRegisteredClaimNames.UniqueName,
                 user.UserName),
 
-            new Claim(
+            new(
                 ClaimTypes.Name,
                 user.UserName),
 
-            new Claim(
+            new(
                 ClaimTypes.Role,
                 user.Role.Name)
         };
 
         var key = new SymmetricSecurityKey(
-            Encoding.UTF8.GetBytes(_jwtSettings.SecretKey));
+            Encoding.UTF8.GetBytes(
+                _jwtSettings.SecretKey));
 
         var credentials = new SigningCredentials(
             key,
@@ -68,5 +66,25 @@ public class JwtService : IJwtService
 
         return new JwtSecurityTokenHandler()
             .WriteToken(token);
+    }
+
+
+    public string GenerateRefreshToken()
+    {
+        var randomBytes = RandomNumberGenerator.GetBytes(64);
+
+        return Convert.ToBase64String(randomBytes);
+    }
+
+
+    public int GetAccessTokenExpirationMinutes()
+    {
+        return _jwtSettings.AccessTokenExpirationMinutes;
+    }
+
+
+    public int GetRefreshTokenExpirationDays()
+    {
+        return _jwtSettings.RefreshTokenExpirationDays;
     }
 }
