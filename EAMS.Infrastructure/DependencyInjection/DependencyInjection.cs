@@ -1,6 +1,7 @@
 ﻿using EAMS.Application.Common.Interfaces;
 using EAMS.Application.Common.Settings;
 using EAMS.Infrastructure.Authentication;
+using EAMS.Infrastructure.Authorization;
 using EAMS.Infrastructure.Persistence.Context;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -29,6 +30,7 @@ public static class DependencyInjection
         configuration.GetSection("Jwt"));
 
         services.AddScoped<IJwtService, JwtService>();
+        services.AddScoped<IPermissionService, PermissionService>();
 
         return services;
     }

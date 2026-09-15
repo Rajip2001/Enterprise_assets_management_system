@@ -1,19 +1,18 @@
 ﻿using EAMS.Application.Common.Interfaces;
-using EAMS.Application.Features.Authentication.DTOs;
-using EAMS.Domain.Common;
+using EAMS.Application.Features.Users.DTOs;
 using EAMS.Domain.Entities;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 
-namespace EAMS.Application.Features.Authentication.Commands.Register;
+namespace EAMS.Application.Features.Users.Commands.CreateUser;
 
-public class RegisterCommandHandler
-    : IRequestHandler<RegisterCommand, RegisterResponse>
+public class CreateUserCommandHandler
+    : IRequestHandler<CreateUserCommand, UserResponse>
 {
     private readonly IApplicationDbContext _context;
     private readonly IPasswordHasher _passwordHasher;
 
-    public RegisterCommandHandler(
+    public CreateUserCommandHandler(
         IApplicationDbContext context,
         IPasswordHasher passwordHasher)
     {
@@ -21,16 +20,17 @@ public class RegisterCommandHandler
         _passwordHasher = passwordHasher;
     }
 
-    public async Task<RegisterResponse> Handle(
-        RegisterCommand request,
+    public async Task<UserResponse> Handle(
+        CreateUserCommand request,
         CancellationToken cancellationToken)
     {
         var email = request.Email.Trim().ToLowerInvariant();
         var userName = request.UserName.Trim();
 
-        // Check duplicate email
         var emailExists = await _context.Users
-            .AnyAsync(x => x.Email == email, cancellationToken);
+            .AnyAsync(
+                x => x.Email.ToLower() == email,
+                cancellationToken);
 
         if (emailExists)
         {
@@ -38,56 +38,59 @@ public class RegisterCommandHandler
                 "A user with this email already exists.");
         }
 
-        // Check duplicate username
         var userNameExists = await _context.Users
-            .AnyAsync(x => x.UserName == userName, cancellationToken);
+            .AnyAsync(
+                x => x.UserName.ToLower() == userName.ToLower(),
+                cancellationToken);
 
         if (userNameExists)
         {
             throw new InvalidOperationException(
-                "This username is already taken.");
+                "A user with this username already exists.");
         }
 
-        // Get default Employee role
-        var employeeRole = await _context.Roles
+        var role = await _context.Roles
             .FirstOrDefaultAsync(
-                x => x.Name == EAMS.Domain.Common.Roles.Employee,
+                x => x.Id == request.RoleId,
                 cancellationToken);
 
-        if (employeeRole is null)
+        if (role is null)
         {
-            throw new InvalidOperationException(
-                "Default Employee role was not found.");
+            throw new KeyNotFoundException(
+                "The specified role was not found.");
         }
 
-        // Create user
         var user = new User
         {
             Id = Guid.NewGuid(),
-
             FirstName = request.FirstName.Trim(),
             LastName = request.LastName.Trim(),
-
             Email = email,
             UserName = userName,
-
+            PhoneNumber = string.IsNullOrWhiteSpace(request.PhoneNumber)
+                ? null
+                : request.PhoneNumber.Trim(),
             PasswordHash = _passwordHasher.Hash(request.Password),
-
-            PhoneNumber = request.PhoneNumber?.Trim(),
-
             IsActive = true,
-
-            RoleId = employeeRole.Id
+            RoleId = role.Id
         };
 
-        await _context.Users.AddAsync(user, cancellationToken);
+        _context.Users.Add(user);
 
         await _context.SaveChangesAsync(cancellationToken);
 
-        return new RegisterResponse
+        return new UserResponse
         {
-            UserId = user.Id,
-            Message = "User registered successfully."
+            Id = user.Id,
+            FirstName = user.FirstName,
+            LastName = user.LastName,
+            Email = user.Email,
+            UserName = user.UserName,
+            PhoneNumber = user.PhoneNumber,
+            IsActive = user.IsActive,
+            RoleId = role.Id,
+            Role = role.Name,
+            LastLogin = user.LastLogin
         };
     }
 }

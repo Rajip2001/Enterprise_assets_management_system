@@ -1,12 +1,16 @@
+using EAMS.API.Authorization;
 using EAMS.Application.Common.Settings;
 using EAMS.Application.DependencyInjection;
 using EAMS.Infrastructure.DependencyInjection;
 using EAMS.Infrastructure.Persistence.Context;
 using EAMS.Infrastructure.Persistence.Seed;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
+using EAMS.API.Middleware;
+
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -89,6 +93,18 @@ builder.Services
             };
     });
 
+builder.Services.AddAuthorization();
+
+builder.Services.AddScoped<
+    IAuthorizationHandler,
+    PermissionAuthorizationHandler>();
+
+builder.Services.AddSingleton<
+    IAuthorizationPolicyProvider,
+    PermissionPolicyProvider>();
+
+builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
+builder.Services.AddProblemDetails();
 
 // Build application
 var app = builder.Build();
