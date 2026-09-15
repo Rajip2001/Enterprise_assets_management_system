@@ -1,10 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
+﻿using EAMS.Application.Features.Permissions.DTOs;
+using MediatR;
 
-namespace EAMS.Application.Features.Permissions.Queries.GetPermissions
-{
-    internal class GetPermissionsQuery
-    {
-    }
-}
+namespace EAMS.Application.Features.Permissions.Queries.GetPermissions;
+
+public record GetPermissionsQuery
+    : IRequest<List<PermissionResponse>>;

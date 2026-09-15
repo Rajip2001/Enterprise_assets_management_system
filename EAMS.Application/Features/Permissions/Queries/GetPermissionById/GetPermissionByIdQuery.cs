@@ -1,10 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
+﻿using EAMS.Application.Features.Permissions.DTOs;
+using MediatR;
 
-namespace EAMS.Application.Features.Permissions.Queries.GetPermissionById
-{
-    internal class GetPermissionByIdQuery
-    {
-    }
-}
+namespace EAMS.Application.Features.Permissions.Queries.GetPermissionById;
+
+public record GetPermissionByIdQuery(
+    Guid Id
+) : IRequest<PermissionResponse>;

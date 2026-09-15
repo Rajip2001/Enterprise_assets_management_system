@@ -1,10 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
+﻿namespace EAMS.Application.Features.Permissions.DTOs;
 
-namespace EAMS.Application.Features.Permissions.DTOs
+public class PermissionResponse
 {
-    internal class PermissionResponse
-    {
-    }
+    public Guid Id { get; set; }
+
+    public string Name { get; set; } = string.Empty;
+
+    public string? Description { get; set; }
 }
